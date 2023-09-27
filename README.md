@@ -13,7 +13,7 @@ Jianhao Zeng
 1.   Clone the repository
 
 ```bash
-git clone https://github.com/zengjianhao/FC-VTON
+git clone https://github.com/zengjianhao/FC-VTON.git
 ```
 
 2.   A suitable `conda` environment named `FC-VTON` can be created and activated with:
