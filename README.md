@@ -17,14 +17,14 @@ Our experiments were conducted on two NVIDIA GeForce RTX 4090 graphics cards, wi
 1.   Clone the repository
 
 ```bash
-git clone https://github.com/zengjianhao/FC-VTON
+git clone https://github.com/zengjianhao/CAT-DM
 ```
 
-2.   A suitable `conda` environment named `FC-VTON` can be created and activated with:
+2.   A suitable `conda` environment named `CAT-DM` can be created and activated with:
 
 ```bash
 conda env create -f environment.yaml
-conda activate FC-VTON
+conda activate CAT-DM
 ```
 
 -   If you want to change the name of the environment you created, you need to modify the `name` in both `environment.yaml` and `setup.py`.
