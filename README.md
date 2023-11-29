@@ -2,7 +2,7 @@
 
 Jianhao Zeng
 
-![](./CAT-DM.png =100x100)
+<img src="./CAT-DM.png" style="width:50%;">
 
 ## Abstract
 
