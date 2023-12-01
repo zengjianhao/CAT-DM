@@ -1,6 +1,6 @@
 # CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model
 
-Jianhao Zeng
+[paper](https://arxiv.org/abs/2311.18405) | Code Coming soon
 
 <img src="./CAT-DM.png" style="width:50%;">
 
