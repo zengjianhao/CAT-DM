@@ -108,3 +108,13 @@ bash train-dresscode.sh
 ```bash
 bash train-viton.sh
 ```
+## Citing
+
+```
+@article{zeng2023cat,
+  title={CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model},
+  author={Zeng, Jianhao and Song, Dan and Nie, Weizhi and Tian, Hongshuo and Wang, Tongtong and Liu, Anan},
+  journal={arXiv preprint arXiv:2311.18405},
+  year={2023}
+}
+```
