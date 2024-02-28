@@ -17,9 +17,9 @@
     <sup>1</sup>Tianjin University &emsp; <sup>2</sup>Tencent LightSpeed Studio
 </div>
 
-[[paper]](https://arxiv.org/abs/2311.18405) 
+Paper: [https://arxiv.org/abs/2311.18405](https://arxiv.org/abs/2311.18405)
 
-<img src="./CAT-DM.png" style="width:30%;">
+<img src="./assets/CAT-DM.png" style="width:30%;">
 
 </div>
 
