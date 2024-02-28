@@ -1,8 +1,27 @@
-# CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model
+<div align="center">
+     
+<h1>CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model</h1>
 
-[paper](https://arxiv.org/abs/2311.18405)
+<div>
+     <a href="https://zengjianhao.github.io/" target="_blank">Jianhao Zeng</a><sup>1</sup>,
+     <a href="http://seea.tju.edu.cn/info/1014/1460.htm" target="_blank">Dan Song</a><sup>1,*</sup>,
+     <a href="https://seea.tju.edu.cn/info/1014/1451.htm" target="_blank">Weizhi Nie</a><sup>1</sup>,
+     <a href="https://seea.tju.edu.cn/info/1014/3931.htm" target="_blank">Hongshuo Tian</a><sup>1</sup>,
+</div>
+<div>
+     <a href="https://tongttwang.github.io/" target="_blank">Tongtong Wang</a><sup>2</sup>,
+     <a href="https://tongttwang.github.io/" target="_blank">Anan Liu</a><sup>1,*</sup>,
+</div>
 
-<img src="./CAT-DM.png" style="width:50%;">
+<div>
+    <sup>1</sup>Tianjin University &emsp; <sup>2</sup>Tencent LightSpeed Studio
+</div>
+
+[[paper]](https://arxiv.org/abs/2311.18405) 
+
+<img src="./CAT-DM.png" style="width:30%;">
+
+</div>
 
 ## Abstract
 
