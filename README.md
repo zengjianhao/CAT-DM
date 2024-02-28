@@ -10,7 +10,7 @@
 </div>
 <div>
      <a href="https://tongttwang.github.io/" target="_blank">Tongtong Wang</a><sup>2</sup>,
-     <a href="https://liuanantju.github.io/" target="_blank">Anan Liu</a><sup>1,*</sup>,
+     <a href="https://liuanantju.github.io/" target="_blank">Anan Liu</a><sup>1,*</sup>
 </div>
 
 <div>
