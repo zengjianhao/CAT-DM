@@ -85,10 +85,10 @@ python tools/viton_mask.py datasets/VITON-HD/test datasets/VITON-HD/test/mask
 
 ### DressCode
 
-1.   Download the [DressCode](https://github.com/aimagelab/dress-code) dataset
-2.  Create a folder `datasets`
-3.  Put the VITON-HD dataset into this folder and rename it to `DressCode`
-4.   Generate the mask images and the agnostic images
+1. Download the [DressCode](https://github.com/aimagelab/dress-code) dataset
+2. Create a folder `datasets`
+3. Put the VITON-HD dataset into this folder and rename it to `DressCode`
+4. Generate the mask images and the agnostic images
 
 ```bash
 # Generate the dresses dataset mask images and the agnostic images
@@ -145,30 +145,22 @@ datasets
 PS: When we conducted the experiment, VITON-HD did not release the `agnostic-mask`. We used our own implemented `mask`, so if you are using VITON-HD's `agnostic-mask`, the generated results may vary.
 
 
+## Required Model
 
-## Pretrain Model
+1. Download the [Paint-by-Example](https://drive.google.com/file/d/15QzaTWsvZonJcXsNv-ilMRCYaQLhzR_i/view) model
+2. Put the Paint-by-Example dataset into the folder `checkpoints` and rename it to `pbe.ckpt`
+3. Make the ControlNet model
+   - VITON-HD: `python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim6.ckpt configs/train-viton.yaml`
+   - DressCode: `python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim5.ckpt configs/train-dresscode.yaml`
 
-1.   Download the [Paint-by-Example](https://drive.google.com/file/d/15QzaTWsvZonJcXsNv-ilMRCYaQLhzR_i/view) model
-2.   Download the [divov2 ViT-L/14](https://dl.fbaipublicfiles.com/dinov2/dinov2_vitl14/dinov2_vitl14_pretrain.pth) model
-3.   Make the ControlNet model
-     -   DressCode: `python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim5.ckpt configs/train-dresscode.yaml`
-     -   VITON-HD: `python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim6.ckpt configs/train-viton.yaml`
 
-## Testing
-
-### DressCode
-
-```bash
-bash test-dresscode.sh
-```
+## Training
 
 ### VITON-HD
 
 ```bash
-bash test-viton.sh
+bash train-viton.sh
 ```
-
-## Training
 
 ### DressCode
 
@@ -176,11 +168,36 @@ bash test-viton.sh
 bash train-dresscode.sh
 ```
 
+
+## Testing
+
 ### VITON-HD
 
+1. Download the Pretrain model and directly generate the try-on results:
+
 ```bash
-bash train-viton.sh
+bash test-viton.sh
 ```
+
+2. Poisson Blending
+
+### DressCode
+
+1. Download the Pretrain model and directly generate the try-on results:
+
+```bash
+bash test-dresscode.sh
+```
+
+2. Poisson Blending
+
+
+
+
+
+
+
+
 
 
 ## Citing
