@@ -1,5 +1,5 @@
 <div align="center">
-     
+
 <h1>CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model</h1>
 
 <div>
@@ -75,7 +75,7 @@ rm -rf xformers
 
 ```bash
 # Generate the dresses dataset mask images and the agnostic images
-python tools/dresscode_mask.py DatasetPath/dresses DatasetPath/dresses/mask 
+python tools/dresscode_mask.py DatasetPath/dresses DatasetPath/dresses/mask
 # Generate the lower_body dataset mask images and the agnostic images
 python tools/dresscode_mask.py DatasetPath/lower_body DatasetPath/lower_body/mask DatasetPath/lower_body/agnostic
 # Generate the upper_body dataset mask images and the agnostic images
@@ -104,7 +104,7 @@ python tools/viton_mask.py DatasetPath/test DatasetPath/test/mask
 
 ## Testing
 
-#### DressCode
+### DressCode
 
 ```bash
 bash test-dresscode.sh
@@ -129,6 +129,8 @@ bash train-dresscode.sh
 ```bash
 bash train-viton.sh
 ```
+
+
 ## Citing
 
 ```
