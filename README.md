@@ -44,6 +44,7 @@ git clone https://github.com/zengjianhao/CAT-DM
 2.   A suitable `conda` environment named `CAT-DM` can be created and activated with:
 
 ```bash
+cd CAT-DM
 conda env create -f environment.yaml
 conda activate CAT-DM
 ```
@@ -68,31 +69,42 @@ rm -rf xformers
 
 ## Dataset Preparing
 
-### DressCode
-
-1.   Download the [DressCode](https://github.com/aimagelab/dress-code) dataset
-2.   Generate the mask images and the agnostic images
-
-```bash
-# Generate the dresses dataset mask images and the agnostic images
-python tools/dresscode_mask.py DatasetPath/dresses DatasetPath/dresses/mask
-# Generate the lower_body dataset mask images and the agnostic images
-python tools/dresscode_mask.py DatasetPath/lower_body DatasetPath/lower_body/mask DatasetPath/lower_body/agnostic
-# Generate the upper_body dataset mask images and the agnostic images
-python tools/dresscode_mask.py DatasetPath/upper_body DatasetPath/upper_body/mask DatasetPath/upper_body/agnostic
-```
-
 ### VITON-HD
 
 1.  Download the [VITON-HD](https://github.com/shadow2496/VITON-HD) dataset
-2.  Generate the mask images
+2.  Create a folder `datasets`
+3.  Put the VITON-HD dataset into this folder and rename it to `VITON-HD`
+4.  Generate the mask images
 
 ```bash
 # Generate the train dataset mask images
-python tools/viton_mask.py DatasetPath/train DatasetPath/train/mask
+python tools/viton_mask.py datasets/VITON-HD/train datasets/VITON-HD/train/mask
 # Generate the test dataset mask images
-python tools/viton_mask.py DatasetPath/test DatasetPath/test/mask
+python tools/viton_mask.py datasets/VITON-HD/test datasets/VITON-HD/test/mask
 ```
+
+### DressCode
+
+1.   Download the [DressCode](https://github.com/aimagelab/dress-code) dataset
+2.  Create a folder `datasets`
+3.  Put the VITON-HD dataset into this folder and rename it to `DressCode`
+4.   Generate the mask images and the agnostic images
+
+```bash
+# Generate the dresses dataset mask images and the agnostic images
+python tools/dresscode_mask.py datasets/DressCode/dresses datasets/DressCode/dresses/mask
+# Generate the lower_body dataset mask images and the agnostic images
+python tools/dresscode_mask.py datasets/DressCode/lower_body datasets/DressCode/lower_body/mask
+# Generate the upper_body dataset mask images and the agnostic images
+python tools/dresscode_mask.py datasets/DressCode/upper_body datasets/DressCode/upper_body/mask
+```
+
+### Final
+`datasets` folder should be as follows:
+
+
+
+
 
 ## Pretrain Model
 
