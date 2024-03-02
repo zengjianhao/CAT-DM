@@ -99,9 +99,49 @@ python tools/dresscode_mask.py datasets/DressCode/lower_body datasets/DressCode/
 python tools/dresscode_mask.py datasets/DressCode/upper_body datasets/DressCode/upper_body/mask
 ```
 
-### Final
+### Details
 `datasets` folder should be as follows:
 
+```
+datasets
+├── VITON-HD
+│   ├── test
+│   │   ├── agnostic-mask
+│   │   ├── mask
+│   │   ├── cloth
+│   │   ├── image
+│   │   ├── image-densepose
+│   │   ├── ...
+│   ├── test_pairs.txt
+│   ├── train
+│   │   ├── agnostic-mask
+│   │   ├── mask
+│   │   ├── cloth
+│   │   ├── image
+│   │   ├── image-densepose
+│   │   ├── ...
+│   └── train_pairs.txt
+├── DressCode
+│   ├── dresses
+│   │   ├── dense
+│   │   ├── images
+│   │   ├── mask
+│   │   ├── ...
+│   ├── lower_body
+│   │   ├── dense
+│   │   ├── images
+│   │   ├── mask
+│   │   ├── ...
+│   ├── upper_body
+│   │   ├── dense
+│   │   ├── images
+│   │   ├── mask
+│   │   ├── ...
+│   ├── test_pairs_paired.txt
+│   ├── test_pairs_unpaired.txt
+│   ├── train_pairs.txt
+│   └── ...
+```
 
 
 
