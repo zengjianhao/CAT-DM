@@ -142,7 +142,7 @@ datasets
 │   ├── train_pairs.txt
 │   └── ...
 ```
-
+PS: When we conducted the experiment, VITON-HD did not release the `agnostic-mask`. We used our own implemented `mask`, so if you are using VITON-HD's `agnostic-mask`, the generated results may vary.
 
 
 
