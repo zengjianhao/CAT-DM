@@ -23,7 +23,9 @@ Paper: [https://arxiv.org/abs/2311.18405](https://arxiv.org/abs/2311.18405)
 
 </div>
 
-The code upload is incomplete......
+
+
+The code has not been fully uploaded......
 
 ## Abstract
 
@@ -78,9 +80,9 @@ rm -rf xformers
 
 ```bash
 # Generate the train dataset mask images
-python tools/viton_mask.py datasets/viton/train datasets/viton/train/mask
+python tools/mask_viton.py datasets/viton/train datasets/viton/train/mask
 # Generate the test dataset mask images
-python tools/viton_mask.py datasets/viton/test datasets/viton/test/mask
+python tools/mask_viton.py datasets/viton/test datasets/viton/test/mask
 ```
 
 ### DressCode
@@ -92,11 +94,11 @@ python tools/viton_mask.py datasets/viton/test datasets/viton/test/mask
 
 ```bash
 # Generate the dresses dataset mask images and the agnostic images
-python tools/dresscode_mask.py datasets/dresscode/dresses datasets/dresscode/dresses/mask
+python tools/mask_dresscode.py datasets/dresscode/dresses datasets/dresscode/dresses/mask
 # Generate the lower_body dataset mask images and the agnostic images
-python tools/dresscode_mask.py datasets/dresscode/lower_body datasets/dresscode/lower_body/mask
+python tools/mask_dresscode.py datasets/dresscode/lower_body datasets/dresscode/lower_body/mask
 # Generate the upper_body dataset mask images and the agnostic images
-python tools/dresscode_mask.py datasets/dresscode/upper_body datasets/dresscode/upper_body/mask
+python tools/mask_dresscode.py datasets/dresscode/upper_body datasets/dresscode/upper_body/mask
 ```
 
 ### Details
@@ -149,14 +151,16 @@ PS: When we conducted the experiment, VITON-HD did not release the `agnostic-mas
 
 1. Download the [Paint-by-Example](https://drive.google.com/file/d/15QzaTWsvZonJcXsNv-ilMRCYaQLhzR_i/view) model
 2. Put the Paint-by-Example model into the folder `checkpoints` and rename it to `pbe.ckpt`
-3. Make the ControlNet model
-   - VITON-HD:
+3. Make the ControlNet model:
+
+- VITON-HD:
 ```bash
-python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim6.ckpt configs/train-viton.yaml
+python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe_dim6.ckpt configs/train_viton.yaml
 ```
-   - DressCode:
+
+- DressCode:
 ```bash
-python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim5.ckpt configs/train-dresscode.yaml
+python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe_dim5.ckpt configs/train_dresscode.yaml
 ```
 
 
@@ -165,13 +169,13 @@ python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim5.ckpt confi
 ### VITON-HD
 
 ```bash
-bash train-viton.sh
+bash train_viton.sh
 ```
 
 ### DressCode
 
 ```bash
-bash train-dresscode.sh
+bash train_dresscode.sh
 ```
 
 
@@ -182,7 +186,7 @@ bash train-dresscode.sh
 1. Download the pretrain model and directly generate the try-on results:
 
 ```bash
-bash test-viton.sh
+bash test_viton.sh
 ```
 
 2. Poisson Blending
@@ -196,7 +200,7 @@ python tools/poisson_viton.py
 1. Download the pretrain model and directly generate the try-on results:
 
 ```bash
-bash test-dresscode.sh
+bash test_dresscode.sh
 ```
 
 2. Poisson Blending
