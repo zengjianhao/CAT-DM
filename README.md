@@ -73,30 +73,30 @@ rm -rf xformers
 
 1.  Download the [VITON-HD](https://github.com/shadow2496/VITON-HD) dataset
 2.  Create a folder `datasets`
-3.  Put the VITON-HD dataset into this folder and rename it to `VITON-HD`
+3.  Put the VITON-HD dataset into this folder and rename it to `viton`
 4.  Generate the mask images
 
 ```bash
 # Generate the train dataset mask images
-python tools/viton_mask.py datasets/VITON-HD/train datasets/VITON-HD/train/mask
+python tools/viton_mask.py datasets/viton/train datasets/viton/train/mask
 # Generate the test dataset mask images
-python tools/viton_mask.py datasets/VITON-HD/test datasets/VITON-HD/test/mask
+python tools/viton_mask.py datasets/viton/test datasets/viton/test/mask
 ```
 
 ### DressCode
 
 1. Download the [DressCode](https://github.com/aimagelab/dress-code) dataset
 2. Create a folder `datasets`
-3. Put the VITON-HD dataset into this folder and rename it to `DressCode`
+3. Put the DressCode dataset into this folder and rename it to `dresscode`
 4. Generate the mask images and the agnostic images
 
 ```bash
 # Generate the dresses dataset mask images and the agnostic images
-python tools/dresscode_mask.py datasets/DressCode/dresses datasets/DressCode/dresses/mask
+python tools/dresscode_mask.py datasets/dresscode/dresses datasets/dresscode/dresses/mask
 # Generate the lower_body dataset mask images and the agnostic images
-python tools/dresscode_mask.py datasets/DressCode/lower_body datasets/DressCode/lower_body/mask
+python tools/dresscode_mask.py datasets/dresscode/lower_body datasets/dresscode/lower_body/mask
 # Generate the upper_body dataset mask images and the agnostic images
-python tools/dresscode_mask.py datasets/DressCode/upper_body datasets/DressCode/upper_body/mask
+python tools/dresscode_mask.py datasets/dresscode/upper_body datasets/dresscode/upper_body/mask
 ```
 
 ### Details
@@ -104,7 +104,7 @@ python tools/dresscode_mask.py datasets/DressCode/upper_body datasets/DressCode/
 
 ```
 datasets
-├── VITON-HD
+├── viton
 │   ├── test
 │   │   ├── agnostic-mask
 │   │   ├── mask
@@ -121,7 +121,7 @@ datasets
 │   │   ├── image-densepose
 │   │   ├── ...
 │   └── train_pairs.txt
-├── DressCode
+├── dresscode
 │   ├── dresses
 │   │   ├── dense
 │   │   ├── images
@@ -148,10 +148,16 @@ PS: When we conducted the experiment, VITON-HD did not release the `agnostic-mas
 ## Required Model
 
 1. Download the [Paint-by-Example](https://drive.google.com/file/d/15QzaTWsvZonJcXsNv-ilMRCYaQLhzR_i/view) model
-2. Put the Paint-by-Example dataset into the folder `checkpoints` and rename it to `pbe.ckpt`
+2. Put the Paint-by-Example model into the folder `checkpoints` and rename it to `pbe.ckpt`
 3. Make the ControlNet model
-   - VITON-HD: `python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim6.ckpt configs/train-viton.yaml`
-   - DressCode: `python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim5.ckpt configs/train-dresscode.yaml`
+   - VITON-HD:
+```bash
+python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim6.ckpt configs/train-viton.yaml
+```
+   - DressCode:
+```bash
+python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe-dim5.ckpt configs/train-dresscode.yaml
+```
 
 
 ## Training
@@ -173,7 +179,7 @@ bash train-dresscode.sh
 
 ### VITON-HD
 
-1. Download the Pretrain model and directly generate the try-on results:
+1. Download the pretrain model and directly generate the try-on results:
 
 ```bash
 bash test-viton.sh
@@ -181,9 +187,13 @@ bash test-viton.sh
 
 2. Poisson Blending
 
+```python
+python tools/poisson_viton.py
+```
+
 ### DressCode
 
-1. Download the Pretrain model and directly generate the try-on results:
+1. Download the pretrain model and directly generate the try-on results:
 
 ```bash
 bash test-dresscode.sh
@@ -191,10 +201,19 @@ bash test-dresscode.sh
 
 2. Poisson Blending
 
+```python
+python tools/poisson_dresscode.py
+```
 
+## Evaluation
 
+### FID
 
+### KID
 
+### SSIM
+
+### LPIPS
 
 
 
