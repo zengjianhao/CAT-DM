@@ -75,14 +75,14 @@ rm -rf xformers
 
 1.  Download the [VITON-HD](https://github.com/shadow2496/VITON-HD) dataset
 2.  Create a folder `datasets`
-3.  Put the VITON-HD dataset into this folder and rename it to `viton`
+3.  Put the VITON-HD dataset into this folder and rename it to `vitonhd`
 4.  Generate the mask images
 
 ```bash
 # Generate the train dataset mask images
-python tools/mask_viton.py datasets/viton/train datasets/viton/train/mask
+python tools/mask_vitonhd.py datasets/vitonhd/train datasets/vitonhd/train/mask
 # Generate the test dataset mask images
-python tools/mask_viton.py datasets/viton/test datasets/viton/test/mask
+python tools/mask_vitonhd.py datasets/vitonhd/test datasets/vitonhd/test/mask
 ```
 
 ### DressCode
@@ -106,7 +106,7 @@ python tools/mask_dresscode.py datasets/dresscode/upper_body datasets/dresscode/
 
 ```
 datasets
-├── viton
+├── vitonhd
 │   ├── test
 │   │   ├── agnostic-mask
 │   │   ├── mask
@@ -150,17 +150,27 @@ PS: When we conducted the experiment, VITON-HD did not release the `agnostic-mas
 ## Required Model
 
 1. Download the [Paint-by-Example](https://drive.google.com/file/d/15QzaTWsvZonJcXsNv-ilMRCYaQLhzR_i/view) model
-2. Put the Paint-by-Example model into the folder `checkpoints` and rename it to `pbe.ckpt`
-3. Make the ControlNet model:
+2. Create a folder `checkpoints`
+3. Put the Paint-by-Example model into this folder and rename it to `pbe.ckpt`
+4. Make the ControlNet model:
 
 - VITON-HD:
 ```bash
-python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe_dim6.ckpt configs/train_viton.yaml
+python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe_dim6.ckpt configs/train_vitonhd.yaml
 ```
 
 - DressCode:
 ```bash
 python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe_dim5.ckpt configs/train_dresscode.yaml
+```
+
+5.   `checkpoints` folder should be as follows:
+
+```
+checkpoints
+├── pbe.ckpt
+├── pbe_dim5.ckpt
+└── pbe_dim6.ckpt
 ```
 
 
@@ -169,13 +179,13 @@ python tools/add_control.py checkpoints/pbe.ckpt checkpoints/pbe_dim5.ckpt confi
 ### VITON-HD
 
 ```bash
-bash train_viton.sh
+bash scripts/train_vitonhd.sh
 ```
 
 ### DressCode
 
 ```bash
-bash train_dresscode.sh
+bash scripts/train_dresscode.sh
 ```
 
 
@@ -186,13 +196,13 @@ bash train_dresscode.sh
 1. Download the pretrain model and directly generate the try-on results:
 
 ```bash
-bash test_viton.sh
+bash scripts/test_vitonhd.sh
 ```
 
 2. Poisson Blending
 
 ```python
-python tools/poisson_viton.py
+python tools/poisson_vitonhd.py
 ```
 
 ### DressCode
@@ -200,7 +210,7 @@ python tools/poisson_viton.py
 1. Download the pretrain model and directly generate the try-on results:
 
 ```bash
-bash test_dresscode.sh
+bash scripts/test_dresscode.sh
 ```
 
 2. Poisson Blending

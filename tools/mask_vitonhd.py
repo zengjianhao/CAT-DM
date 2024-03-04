@@ -60,14 +60,12 @@ def get_img_agnostic(img, parse, pose_data):
 
     return agnostic
 
-
 os.makedirs(output_path, exist_ok=True)
 
 for im_name in tqdm(os.listdir(osp.join(input_path, 'image'))):
     
-    # load pose image
+    # Load pose image
     pose_name = im_name.replace('.jpg', '_keypoints.json')
-    
     try:
         with open(osp.join(input_path, 'openpose_json', pose_name), 'r') as f:
             pose_label = json.load(f)
@@ -78,12 +76,13 @@ for im_name in tqdm(os.listdir(osp.join(input_path, 'image'))):
         print(pose_name)
         continue
 
-    # load parsing image
+    # Load parsing image
     label_name = im_name.replace('.jpg', '.png')
     im_label = Image.open(osp.join(input_path, 'image-parse-v3', label_name))
 
+
+    # Generate agnostic image and save
     agnostic = get_img_agnostic(Image.new("RGB", (768, 1024), (0, 0, 0)), im_label, pose_data)
-    
     agnostic.save(osp.join(output_path, im_name.replace('.jpg', '.png')))
 
 print("Done")

@@ -18,7 +18,6 @@ class OpenImageDataset(data.Dataset):
                 for line in f.readlines():
                     person, garment = line.strip().split()
                     self.dataset_list.append([person, person])
-                    self.gan_path = "/home/sd/Harddisk/8t/Comparison/GP-VTON/VITON-Paired"
 
         if state == "test":
             self.dataset_file = os.path.join(dataset_dir, "test_pairs.txt")
@@ -27,14 +26,12 @@ class OpenImageDataset(data.Dataset):
                     for line in f.readlines():
                         person, garment = line.strip().split()
                         self.dataset_list.append([person, garment])
-                        self.gan_path = "/home/sd/Harddisk/8t/Comparison/GP-VTON/VITON-Unpaired"
 
             if type == "paired":
                 with open(self.dataset_file, 'r') as f:
                     for line in f.readlines():
                         person, garment = line.strip().split()
                         self.dataset_list.append([person, person])
-                        self.gan_path = "/home/sd/Harddisk/8t/Comparison/GP-VTON/VITON-Paired"
 
     
     def __len__(self):
@@ -49,7 +46,6 @@ class OpenImageDataset(data.Dataset):
         reference_path = os.path.join(self.dataset_dir, self.state, "cloth", garment)
         mask_path = os.path.join(self.dataset_dir, self.state, "mask", person[:-4]+".png")                              
         densepose_path = os.path.join(self.dataset_dir, self.state, "image-densepose", person)
-        gan_path = os.path.join(self.gan_path, "upper___"+person[:8]+".png___"+garment[:8]+".png")
         
         # 加载图像
         img = Image.open(img_path).convert("RGB").resize((512, 512))
@@ -61,15 +57,12 @@ class OpenImageDataset(data.Dataset):
         mask = 1-mask
         densepose = Image.open(densepose_path).convert("RGB").resize((512, 512))
         densepose = torchvision.transforms.ToTensor()(densepose)
-        gan = Image.open(gan_path).convert("RGB").resize((512, 512))
-        gan = torchvision.transforms.ToTensor()(gan)
 
         # 正则化
         img = torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img)
         refernce = torchvision.transforms.Normalize((0.48145466, 0.4578275, 0.40821073),
                                                     (0.26862954, 0.26130258, 0.27577711))(refernce)
         densepose = torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(densepose)
-        gan = torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(gan)
 
         # 生成 inpaint 和 hint
         inpaint = img * mask
@@ -81,6 +74,5 @@ class OpenImageDataset(data.Dataset):
                 "inpaint_mask": mask,       # [1, 512, 512]
                 "ref_imgs": refernce,       # [3, 224, 224]
                 "hint": hint,               # [6, 512, 512]
-                "gan": gan                  # [3, 512, 512]
                 }
 

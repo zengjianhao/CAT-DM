@@ -80,7 +80,7 @@ data:
           target: ldm.data.viton-images.OpenImageDataset
           params:
               state: train
-              dataset_dir: /home/sd/Harddisk/zjh/Dataset
+              dataset_dir: datasets/vitonhd
 
 lightning:
   trainer:
@@ -89,4 +89,3 @@ lightning:
     profiler: "simple"
     accelerator: 'ddp'
     gpus: "0,1"
-    resume_from_checkpoint: /home/sd/Harddisk/zjh/CAT8/epoch=99-step=36399.ckpt
