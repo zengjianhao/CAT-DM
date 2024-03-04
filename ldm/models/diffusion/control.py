@@ -240,9 +240,7 @@ class ControlLDM(DDPM):
         self.scale_factor = scale_factor                                        # 0.18215
         self.learnable_vector = nn.Parameter(torch.randn((1,1,768)), requires_grad=False)
         self.trainable_vector = nn.Parameter(torch.randn((1,1,768)), requires_grad=True)
-        self.dinov2_vits14 = torch.hub.load('/home/sd/.cache/torch/hub/facebookresearch_dinov2_main', 'dinov2_vitl14', source='local', pretrained=False)
-        state_dict = torch.load('/home/sd/Harddisk/zjh/Teacher/checkpoints/dinov2_vitl14_pretrain.pth')
-        self.dinov2_vits14.load_state_dict(state_dict)
+        self.dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14', pretrained=False)
         self.dinov2_vits14.eval()
         self.dinov2_vits14.train = disabled_train
         for param in self.dinov2_vits14.parameters():

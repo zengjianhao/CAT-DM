@@ -1,4 +1,3 @@
-
 model:
   base_learning_rate: 2e-05
   target: ldm.models.diffusion.control.ControlLDM
@@ -72,12 +71,12 @@ model:
       target: ldm.modules.encoders.modules.FrozenCLIPImageEmbedder
 
 data:
-  target: main.DataModuleFromConfig
+  target: train.DataModuleFromConfig
   params:
       batch_size: 2
       wrap: False
       train:
-          target: ldm.data.viton-images.OpenImageDataset
+          target: ldm.data.image_vitonhd.OpenImageDataset
           params:
               state: train
               dataset_dir: datasets/vitonhd

@@ -51,76 +51,18 @@ def get_parser(**parser_kwargs):
     return parser
 
 
-class DataModuleFromConfig(pl.LightningDataModule):
-    def __init__(self, 
-                 batch_size,                        # N
-                 train=None,                        # {...}
-                 validation=None,                   # {...}
-                 test=None,                         # {...}
-                 wrap=False,                        # False
-                 shuffle_val_dataloader=False,      # False
-                 shuffle_test_loader=False,         # False
-                 use_worker_init_fn=False):         # False
-        super().__init__()
-        self.batch_size = batch_size
-        self.num_workers = batch_size * 2
-        self.use_worker_init_fn = use_worker_init_fn
-        self.wrap = wrap
-        self.dataset_configs = dict()
-        if train is not None:
-            self.dataset_configs["train"] = train                                               # {...}
-            self.train_dataloader = self._train_dataloader                                      # shuffle = True
-        if validation is not None:
-            self.dataset_configs["validation"] = validation                                     # {...}
-            self.val_dataloader = partial(self._val_dataloader, shuffle=shuffle_val_dataloader) # shuffle = False
-        if test is not None:
-            self.dataset_configs["test"] = test                                                 # {...}
-            self.test_dataloader = partial(self._test_dataloader, shuffle=shuffle_test_loader)  # shuffle = False
-
-
-    def setup(self):
-        # 分别加载对应的类，并组成一个字典
-        # {"train":         OpenImageDataset(state="train",         arbitrary_mask_percent=0.5, image_size=256, dataset_dir="/home/sd/Harddisk/zjh_diffusion/Dataset")}
-        # {"validation":    OpenImageDataset(state="validation",    arbitrary_mask_percent=0.5, image_size=256, dataset_dir="/home/sd/Harddisk/zjh_diffusion/Dataset")}
-        # {"test":          OpenImageDataset(state="test",          arbitrary_mask_percent=0.5, image_size=256, dataset_dir="/home/sd/Harddisk/zjh_diffusion/Dataset")}
-        self.datasets = dict((k, instantiate_from_config(self.dataset_configs[k])) for k in self.dataset_configs)
-        
-
-    def _train_dataloader(self):
-        return DataLoader(self.datasets["train"], 
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers, 
-                          shuffle=True,
-                          worker_init_fn=None)
-
-    def _val_dataloader(self, shuffle=False):
-        return DataLoader(self.datasets["validation"],
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers,
-                          shuffle=shuffle,
-                          worker_init_fn=None)
-
-    def _test_dataloader(self, shuffle=False):
-        return DataLoader(self.datasets["test"], 
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers,
-                          shuffle=shuffle,
-                          worker_init_fn=None)
-
-
 class ImageLogger(Callback):
-    def __init__(self, batch_frequency=2000, max_images=4):
+    def __init__(self, batch_frequency=2000, log_steps=[1]):
         super().__init__()
         self.batch_freq = batch_frequency
-        self.max_images = max_images
-        self.log_steps = [1]
-        
-    # 每个训练 batch 结束后调用
+        self.log_steps = log_steps
+
+    # At the end of each batch, determine whether you need to save images.
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         if pl_module.global_step > 0:
             self.log_img(pl_module, batch, batch_idx, split="train")
 
-    # 加载图片
+    # Save images
     def log_img(self, pl_module, batch, batch_idx, split="train"):
         check_idx = pl_module.global_step
         if (self.check_frequency(check_idx) and hasattr(pl_module, "sample_log") and callable(pl_module.sample_log)):
@@ -130,7 +72,7 @@ class ImageLogger(Callback):
             with torch.no_grad():
                 images = pl_module.sample_log(batch)
             for k in images:
-                N = min(images[k].shape[0], self.max_images)
+                N = images[k].shape[0]
                 images[k] = images[k][:N]
                 if isinstance(images[k], torch.Tensor):
                     images[k] = images[k].detach().cpu()
@@ -141,16 +83,10 @@ class ImageLogger(Callback):
                            pl_module.global_step, 
                            pl_module.current_epoch, 
                            batch_idx)
-
-            self._testtube(pl_module, 
-                           images, 
-                           pl_module.global_step, 
-                           split)
-
             if is_train:
                 pl_module.train()
 
-    # check_index 是 500 的倍数，或者 check_idx 在 [1, 2, 4, 8, 16, 32, 64, 128, 256] 中
+    # check_index is a multiple of self.batch_freq, or check_idx is in self.log_steps
     def check_frequency(self, check_idx):
         if ((check_idx % self.batch_freq) == 0 or (check_idx in self.log_steps)) and check_idx > 0:
             try:
@@ -161,7 +97,7 @@ class ImageLogger(Callback):
             return True
         return False
 
-    # 存储在本地
+    # Save images in local folder
     def log_local(self, 
                   save_dir, 
                   split, 
@@ -172,7 +108,7 @@ class ImageLogger(Callback):
         root = os.path.join(save_dir, "images", split)
         for k in images:
             grid = torchvision.utils.make_grid(images[k], nrow=4)
-            grid = (grid + 1.0) / 2.0  # -1,1 -> 0,1; c,h,w
+            grid = (grid + 1.0) / 2.0
             grid = grid.transpose(0, 1).transpose(1, 2).squeeze(-1)
             grid = grid.numpy()
             grid = (grid * 255).astype(np.uint8)
@@ -185,13 +121,6 @@ class ImageLogger(Callback):
             os.makedirs(os.path.split(path)[0], exist_ok=True)
             Image.fromarray(grid).save(path)
 
-    def _testtube(self, pl_module, images, batch_idx, split):
-        for k in images:
-            grid = torchvision.utils.make_grid(images[k])
-            grid = (grid + 1.0) / 2.0
-            tag = f"{split}/{k}"
-            pl_module.logger.experiment.add_image(tag, grid, global_step=pl_module.global_step)
-
 
 class CUDACallback(Callback):
     def on_train_epoch_start(self, trainer, pl_module):
@@ -201,11 +130,9 @@ class CUDACallback(Callback):
 
     def on_train_epoch_end(self, trainer, pl_module, outputs):
         torch.cuda.synchronize(trainer.root_gpu)
-
         epoch = trainer.current_epoch
         if epoch % 5 == 0 and epoch !=0 :
             trainer.save_checkpoint(f'epoch={epoch}.ckpt')
-        
         max_memory = torch.cuda.max_memory_allocated(trainer.root_gpu) / 2 ** 20
         epoch_time = time.time() - self.start_time
         try:
@@ -216,6 +143,30 @@ class CUDACallback(Callback):
             rank_zero_info(f"Average Peak memory {max_memory:.2f}MiB")
         except AttributeError:
             pass
+
+
+class DataModuleFromConfig(pl.LightningDataModule):
+    def __init__(self, 
+                 batch_size,                        # N
+                 train=None,                        # {...}
+                 wrap=False,                        # False
+                 use_worker_init_fn=False):         # False
+        super().__init__()
+        self.batch_size = batch_size
+        self.num_workers = batch_size * 2
+        self.use_worker_init_fn = use_worker_init_fn
+        self.wrap = wrap
+        self.dataset_configs = dict()
+        self.train = train
+        self.train_dataloader = self._train_dataloader
+
+
+    def _train_dataloader(self):
+        return DataLoader(instantiate_from_config(self.train),
+                          batch_size=self.batch_size,
+                          num_workers=self.num_workers, 
+                          shuffle=True,
+                          worker_init_fn=None)
 
 
 if __name__ == "__main__":
@@ -284,22 +235,17 @@ if __name__ == "__main__":
 
     # Callbacks setting
     default_callbacks_cfg = {
-        # 训练过程中将图片存储在本地文件夹和 tensorboard 中
+        # Save images in local folder during training process
         "image_logger": {
             "target": "train.ImageLogger",
-            "params": {
-                "batch_frequency": 2000,         # 保存图片的频率 
-                "max_images": 4                 # grid 中最大图片数量
-            }
+            "params": {"batch_frequency": 2000, "log_steps": [1]}
         },
-        # 训练过程中自动记录学习率
+        # Automatically record learning rate during training process
         "learning_rate_logger": {
             "target": "train.LearningRateMonitor",
-            "params": {
-                "logging_interval": "step",     # 根据 step 记录学习率
-            }
+            "params": {"logging_interval": "step"}
         },
-        # CUDA 和 GPU 相关
+        # on_train_epoch_start and on_train_epoch_end
         "cuda_callback": {
             "target": "train.CUDACallback"
         },
@@ -309,34 +255,27 @@ if __name__ == "__main__":
 
 
     # =============================================================
-    # 使用 trainer_kwargs 初始化 trainer
+    # Initialize trainer with trainer_kwargs 
     # =============================================================
     trainer = Trainer.from_argparse_args(trainer_opt, **trainer_kwargs)
-    trainer.logdir = logdir # models/Paint-by-Example/nowname
+    trainer.logdir = logdir
 
 
     # =============================================================
-    # 加载数据集
+    # Load dataset
     # =============================================================
-    # 使用 config.data["params"] 初始化 main 中的 DataModuleFromConfig
+    # Use config.data["params"] to initialize config.data["target"]
     data = instantiate_from_config(config.data)
-    # 分别初始化 ldm.data.open-images 的 OpenImageDataset 得到 self.datasets
-    data.setup()
-    # self.datasets.keys 有 train validation test
-    # 给出各个数据集的大小
-    for k in data.datasets:
-        print(f"{k}, {data.datasets[k].__class__.__name__}, {len(data.datasets[k])}")
-
-    # =============================================================
-    # 设置 batchsize 和 learning_rate
-    # =============================================================
-    bs, base_lr= config.data.params.batch_size, config.model.base_learning_rate
-    num_nodes = 1
-    model.learning_rate = base_lr
+    print(f"{'train'}, {data.train_dataloader().__class__.__name__}, {len(data.train_dataloader())}")
 
 
     # =============================================================
-    # 训练及测试
+    # Set learning_rate
+    # =============================================================
+    model.learning_rate = config.model.base_learning_rate
+
+
+    # =============================================================
+    # Training
     # =============================================================
     trainer.fit(model, data)
-    # trainer.test(model, data)
