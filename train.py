@@ -19,7 +19,7 @@ from pytorch_lightning.utilities import rank_zero_info
 
 from ldm.util import instantiate_from_config
 
-# ignore warnings
+# Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -36,7 +36,7 @@ def get_parser(**parser_kwargs):
             raise argparse.ArgumentTypeError("Boolean value expected.")
 
     parser = argparse.ArgumentParser(**parser_kwargs)
-    # 默认设置
+    # default
     parser.add_argument("-n", "--name",             type=str,       nargs="?",  default="")
     parser.add_argument("-r", "--resume",           type=str,       nargs="?",  default="")
     parser.add_argument("-t", "--train",            type=str2bool,  nargs="?",  default=True)
@@ -44,11 +44,10 @@ def get_parser(**parser_kwargs):
     parser.add_argument("-f", "--postfix",          type=str,       nargs="?",  default="")
     parser.add_argument("--train_from_scratch",     type=str2bool,  nargs="?",  default=False)
     parser.add_argument("-d", "--debug",            type=str2bool,  nargs="?",  default=False)
-    # train.sh 文件设置
-    parser.add_argument("-b", "--base",             type=str,       nargs="*",  default=["configs/v1.yaml"])    # configs/v1.yaml
-    parser.add_argument("-l", "--logdir",           type=str,       nargs="?",  default="logs")                 # models/Paint-by-Example
-    parser.add_argument("-p", "--pretrained_model", type=str,       nargs="?",  default="")                     # checkpoints/pbe-dim5.ckpt
-
+    # train.sh
+    parser.add_argument("-b", "--base",             type=str,       nargs="?",  default="configs/train_vitonhd.yaml")
+    parser.add_argument("-l", "--logdir",           type=str,       nargs="?",  default="logs")
+    parser.add_argument("-p", "--pretrained_model", type=str,       nargs="?",  default="checkpoints/pbe_dim6.ckpt")
     return parser
 
 
@@ -109,49 +108,17 @@ class DataModuleFromConfig(pl.LightningDataModule):
                           worker_init_fn=None)
 
 
-class SetupCallback(Callback):
-    def __init__(self, resume, now, logdir, ckptdir, cfgdir, config, lightning_config):
-        super().__init__()
-        self.resume = resume
-        self.now = now
-        self.logdir = logdir
-        self.ckptdir = ckptdir
-        self.cfgdir = cfgdir
-        self.config = config
-        self.lightning_config = lightning_config
-
-    # 在训练程序开始之前调用
-    def on_pretrain_routine_start(self, trainer, pl_module):
-        # 记录配置信息
-        if trainer.global_rank == 0:
-            os.makedirs(self.logdir,  exist_ok=True)
-            os.makedirs(self.ckptdir, exist_ok=True)
-            os.makedirs(self.cfgdir,  exist_ok=True)
-
-            print("Save project config")
-            OmegaConf.save(self.config, os.path.join(self.cfgdir, "{}-project.yaml".format(self.now)))
-
-            print("Save lightning config")
-            OmegaConf.save(OmegaConf.create({"lightning": self.lightning_config}), os.path.join(self.cfgdir, "{}-lightning.yaml".format(self.now)))
-
-
 class ImageLogger(Callback):
-    def __init__(self, batch_frequency=500, max_images=4):
+    def __init__(self, batch_frequency=2000, max_images=4):
         super().__init__()
         self.batch_freq = batch_frequency
         self.max_images = max_images
-
         self.log_steps = [1]
         
     # 每个训练 batch 结束后调用
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         if pl_module.global_step > 0:
             self.log_img(pl_module, batch, batch_idx, split="train")
-
-    # 每个验证 batch 结束后调用
-    def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
-        if pl_module.global_step > 0:
-            self.log_img(pl_module, batch, batch_idx, split="val")
 
     # 加载图片
     def log_img(self, pl_module, batch, batch_idx, split="train"):
@@ -160,18 +127,14 @@ class ImageLogger(Callback):
             is_train = pl_module.training
             if is_train:
                 pl_module.eval()
-
             with torch.no_grad():
-                images = pl_module.sample_log(batch) # 使用 ddim 进行采样
-
-
+                images = pl_module.sample_log(batch)
             for k in images:
                 N = min(images[k].shape[0], self.max_images)
                 images[k] = images[k][:N]
                 if isinstance(images[k], torch.Tensor):
                     images[k] = images[k].detach().cpu()
                     images[k] = torch.clamp(images[k], -1., 1.)
-
             self.log_local(pl_module.logger.save_dir, 
                            split, 
                            images,
@@ -199,7 +162,6 @@ class ImageLogger(Callback):
         return False
 
     # 存储在本地
-    @rank_zero_only
     def log_local(self, 
                   save_dir, 
                   split, 
@@ -223,12 +185,10 @@ class ImageLogger(Callback):
             os.makedirs(os.path.split(path)[0], exist_ok=True)
             Image.fromarray(grid).save(path)
 
-    # 存储在 tensorboard
-    @rank_zero_only
     def _testtube(self, pl_module, images, batch_idx, split):
         for k in images:
             grid = torchvision.utils.make_grid(images[k])
-            grid = (grid + 1.0) / 2.0  # -1,1 -> 0,1; c,h,w
+            grid = (grid + 1.0) / 2.0
             tag = f"{split}/{k}"
             pl_module.logger.experiment.add_image(tag, grid, global_step=pl_module.global_step)
 
@@ -263,7 +223,7 @@ if __name__ == "__main__":
     sys.path.append(os.getcwd())
 
     # =============================================================
-    # 处理 opt
+    # Get parser and generate opt
     # =============================================================
     parser = get_parser()
     parser = Trainer.add_argparse_args(parser)
@@ -271,92 +231,59 @@ if __name__ == "__main__":
 
 
     # =============================================================
-    # 处理 name
+    # Generate logdir path
     # =============================================================
-    now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")             # 当前时间 now
-    cfg_fname = os.path.split(opt.base[0])[-1]                              # ["configs/v1.yaml"] -> v1.yaml
-    cfg_name = os.path.splitext(cfg_fname)[0]                               # v1.yaml -> v1
-    name = "_" + cfg_name                                                   # v1 -> _v1
-    nowname = now + name                                                    # 2023-05-18T04-27-24_v1
-    logdir = os.path.join(opt.logdir, nowname)                              # logdir  = models/Paint-by-Example/nowname
-    ckptdir = os.path.join(logdir, "checkpoints")                           # ckptdir = models/Paint-by-Example/nowname/checkpoints
-    cfgdir = os.path.join(logdir, "configs")                                # cfgdir  = models/Paint-by-Example/nowname/configs
+    now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")     # 2023-05-18T04-27-24
+    cfg_fname = os.path.split(opt.base)[-1]                         # train_vitonhd.yaml
+    cfg_name = os.path.splitext(cfg_fname)[0]                       # train_vitonhd
+    nowname = now + "_" + cfg_name                                  # 2023-05-18T04-27-24_train_vitonhd
+    logdir = os.path.join(opt.logdir, nowname)                      # logs/2023-05-18T04-27-24_train_vitonhd
+    ckptdir = os.path.join(logdir, "checkpoints")                   # logs/2023-05-18T04-27-24_train_vitonhd/checkpoints
+    cfgdir = os.path.join(logdir, "configs")                        # logs/2023-05-18T04-27-24_train_vitonhd/configs
 
 
     # =============================================================
-    # 设置 seed
+    # Set seed
     # =============================================================
     seed_everything(opt.seed)
 
 
     # =============================================================
-    # 初始化 config
+    # Initialize config
     # =============================================================
-    configs = [OmegaConf.load(cfg) for cfg in opt.base]                     # OmegaConf.load("configs/v1.yaml") 加载 YAML 文件为 DictConfig
-    cli = OmegaConf.from_dotlist(unknown)                                   # 将 unknown 转换为 DictConfig
-    config = OmegaConf.merge(*configs, cli)                                 # 合并为新的 DictConfig
+    config = OmegaConf.load(opt.base)                                       # Load the yaml file to DictConfig
+    lightning_config = config.pop("lightning", OmegaConf.create())          # Remove lightning from config and return lightning_config
+    trainer_config = lightning_config.get("trainer", OmegaConf.create())    # Extract trainer from lightning_config
+    trainer_opt = argparse.Namespace(**trainer_config)                      # argparse.Namespace(accelerator='ddp', gpus='0,1', max_epochs=200, num_nodes=1)
 
 
     # =============================================================
-    # 初始化 lightning_config
+    # Load model and initialize it
     # =============================================================
-    lightning_config = config.pop("lightning", OmegaConf.create())          # 从 config 中删除 lightning 并返回 lightning_config
-    trainer_config = lightning_config.get("trainer", OmegaConf.create())    # 提取 lightning_config 中的 trainer
-    gpuinfo = trainer_config["gpus"]                                        # gpuinfo = "0,1"
-    cpu = False                                                             # GPU
-    trainer_opt = argparse.Namespace(**trainer_config)                      # trainer_opt = argparse.Namespace(accelerator='ddp', gpus='0,1', max_epochs=40, num_nodes=1)
-    lightning_config.trainer = trainer_config                               # 更新回 lightning_config
-
-
-    # =============================================================
-    # 加载 model 并进行初始化
-    # =============================================================
-    # 使用 config.model["params"] 初始化 ldm.models.diffusion.ddpm 中的 LatentDiffusion
+    # Use config.model["params"] to initialize config.model["target"]
     model = instantiate_from_config(config.model)
-    # 加载预训练模型权重
+    # Load pre-trained model weights
     model.load_state_dict(torch.load(opt.pretrained_model, map_location='cpu'), strict=False)
 
 
     # =============================================================
-    # 初始化 trainer_kwargs
+    # Set trainer_kwargs
     # =============================================================
     trainer_kwargs = dict()
 
-    # 梯度累计
+    # Gradient accumulation
     trainer_kwargs["accumulate_grad_batches"] = 8
 
-    # 在 logdir/testtube 文件夹下保存信息
-    default_logger_cfgs = {
-        "testtube": {
-            "target": "pytorch_lightning.loggers.TestTubeLogger",
-            "params": {
-                "name": "testtube",     # 文件夹名
-                "save_dir": logdir,     # 保存路径
-            }
-        },
+    # Log the training process in logdir/testtube
+    default_logger_cfg = {
+        "target": "pytorch_lightning.loggers.TestTubeLogger",
+        "params": {"name": "testtube", "save_dir": logdir}
     }
-    default_logger_cfg = default_logger_cfgs["testtube"]
-    logger_cfg = OmegaConf.create()
-    logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
-
-    # 使用 testtube["params"] 初始化 pytorch_lightning.loggers.TestTubeLogger
+    logger_cfg = OmegaConf.create(default_logger_cfg)
     trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
-    # 其他配置
+    # Callbacks setting
     default_callbacks_cfg = {
-        # 训练中断和训练前配置信息保存
-        "setup_callback": {
-            "target": "train.SetupCallback",
-            "params": {
-                "resume": opt.resume,
-                "now": now,
-                "logdir": logdir,                       # logdir
-                "ckptdir": ckptdir,                     # logdir/checkpoints
-                "cfgdir": cfgdir,                       # logdir/configs
-                "config": config,                       # 加载后的 configs/v1.yaml
-                "lightning_config": lightning_config,   # 加载后的 configs/v1.yaml.lightning
-            }
-        },
         # 训练过程中将图片存储在本地文件夹和 tensorboard 中
         "image_logger": {
             "target": "train.ImageLogger",
@@ -377,8 +304,7 @@ if __name__ == "__main__":
             "target": "train.CUDACallback"
         },
     }
-    callbacks_cfg = OmegaConf.create()
-    callbacks_cfg = OmegaConf.merge(default_callbacks_cfg, callbacks_cfg)
+    callbacks_cfg = OmegaConf.create(default_callbacks_cfg)
     trainer_kwargs["callbacks"] = [instantiate_from_config(callbacks_cfg[k]) for k in callbacks_cfg]
 
 
