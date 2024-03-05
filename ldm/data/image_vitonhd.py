@@ -11,7 +11,6 @@ class OpenImageDataset(data.Dataset):
         self.dataset_dir = dataset_dir
         self.dataset_list = []
 
-        # 确定状态
         if state == "train":
             self.dataset_file = os.path.join(dataset_dir, "train_pairs.txt")
             with open(self.dataset_file, 'r') as f:
@@ -33,7 +32,6 @@ class OpenImageDataset(data.Dataset):
                         person, garment = line.strip().split()
                         self.dataset_list.append([person, person])
 
-    
     def __len__(self):
         return len(self.dataset_list)
     

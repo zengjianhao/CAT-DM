@@ -9,7 +9,7 @@ from functools import partial
 from torchvision.utils import make_grid
 from ldm.util import default, count_params, instantiate_from_config
 from ldm.modules.distributions.distributions import DiagonalGaussianDistribution
-from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_tensor, noise_like
+from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_tensor
 from ldm.models.diffusion.ddim import DDIMSampler
 from torchvision.transforms import Resize
 import random
@@ -110,9 +110,9 @@ class DDPM(pl.LightningModule):
         self.register_buffer('posterior_log_variance_clipped', to_torch(np.log(np.maximum(posterior_variance, 1e-20))))
         self.register_buffer('posterior_mean_coef1', to_torch(betas * np.sqrt(alphas_cumprod_prev) / (1. - alphas_cumprod)))
         self.register_buffer('posterior_mean_coef2', to_torch((1. - alphas_cumprod_prev) * np.sqrt(alphas) / (1. - alphas_cumprod)))
-        # lvlb_weights = self.betas ** 2 / (2 * self.posterior_variance * to_torch(alphas) * (1 - self.alphas_cumprod))
-        # lvlb_weights[0] = lvlb_weights[1]
-        # self.register_buffer('lvlb_weights', lvlb_weights, persistent=False)
+        lvlb_weights = self.betas ** 2 / (2 * self.posterior_variance * to_torch(alphas) * (1 - self.alphas_cumprod))
+        lvlb_weights[0] = lvlb_weights[1]
+        self.register_buffer('lvlb_weights', lvlb_weights, persistent=False)
 
     def get_input(self, batch):
         x = batch['GT']
@@ -130,12 +130,9 @@ class DDPM(pl.LightningModule):
         return x, inpaint, mask, reference, hint
 
     def q_sample(self, x_start, t, noise=None):
-
         noise = default(noise, lambda: torch.randn_like(x_start))
         return (extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
                 extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise)
-    
-
 
     def get_loss(self, pred, target, mean=True):
         if mean:

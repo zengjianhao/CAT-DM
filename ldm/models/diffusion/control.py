@@ -1,11 +1,10 @@
 import random
-from tqdm import tqdm
 import torch
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
-import numpy as np
+
 from einops import rearrange
 from ldm.modules.diffusionmodules.util import (
     conv_nd,
@@ -18,7 +17,7 @@ from ldm.modules.attention import SpatialTransformer
 from ldm.modules.diffusionmodules.openaimodel import UNetModel, TimestepEmbedSequential, ResBlock, Downsample, AttentionBlock
 from ldm.util import instantiate_from_config, default
 from ldm.models.diffusion.ddim import DDIMSampler
-from ldm.modules.diffusionmodules.util import extract_into_tensor, noise_like, make_ddim_sampling_parameters
+
 import torch
 from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import LambdaLR
@@ -240,7 +239,9 @@ class ControlLDM(DDPM):
         self.scale_factor = scale_factor                                        # 0.18215
         self.learnable_vector = nn.Parameter(torch.randn((1,1,768)), requires_grad=False)
         self.trainable_vector = nn.Parameter(torch.randn((1,1,768)), requires_grad=True)
-        self.dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14', pretrained=False)
+        self.dinov2_vits14 = torch.hub.load('/home/sd/.cache/torch/hub/facebookresearch_dinov2_main', 'dinov2_vitl14', source='local', pretrained=False)
+        state_dict = torch.load('/home/sd/Harddisk/zjh/Teacher/checkpoints/dinov2_vitl14_pretrain.pth')
+        self.dinov2_vits14.load_state_dict(state_dict)
         self.dinov2_vits14.eval()
         self.dinov2_vits14.train = disabled_train
         for param in self.dinov2_vits14.parameters():
@@ -309,7 +310,7 @@ class ControlLDM(DDPM):
     def forward(self, z_new, reference, hint):
         
         # 随机时间 t
-        t = torch.randint(0, 50, (z_new.shape[0],), device=self.device).long()
+        t = torch.randint(0, self.num_timesteps, (z_new.shape[0],), device=self.device).long()
         
         # CLIP 处理 reference
         reference_clip = self.cond_stage_model.encode(reference)
@@ -328,7 +329,10 @@ class ControlLDM(DDPM):
         x_noisy = torch.cat((x_noisy, z_new[:,4:,:,:]),dim=1)
         
         # 预测噪声
-        model_output = self.apply_model(x_noisy, hint, t, reference_clip, reference_dino)
+        if random.uniform(0, 1)<0.2:
+            model_output = self.apply_model(x_noisy, hint, t, reference_clip, reference_dino)
+        else:
+            model_output = self.apply_model(x_noisy, hint, t, reference_clip, reference_dino)
 
         # 计算损失
         loss = self.get_loss(model_output, noise, mean=False).mean([1, 2, 3])
@@ -358,57 +362,30 @@ class ControlLDM(DDPM):
     
     # 采样
     @torch.no_grad()
-    def sample_log(self, batch, ddim_steps=4):
+    def sample_log(self, batch, ddim_steps=50, ddim_eta=0.):
         z_new, reference, hint = self.get_input(batch)
         x, _, mask, _, _ = super().get_input(batch)
         log = dict()
 
+        # log["reference"] = reference
+        # reconstruction = 1. / self.scale_factor * z_new[:,:4,:,:]
+        # log["reconstruction"] = self.first_stage_model.decode(reconstruction)
         log["mask"] = mask
 
-        # 处理数据
-
-        inpaint = z_new[:,4:8,:,:]
-        mask = z_new[:,8:,:,:]
-
-        # 处理设置
-        device = self.betas.device
-        b = z_new.shape[0]
-
-        # 处理参数 t
-        c = 10000 // ddim_steps
-        ddim_timesteps = np.asarray(list(range(0, 1000, c)))
-        ddim_timesteps = ddim_timesteps + 1
-        time_range = np.flip(ddim_timesteps)
-        total_steps = ddim_timesteps.shape[0]
-
-        # 处理预参数
-        ddim_sigmas, ddim_alphas, ddim_alphas_prev = make_ddim_sampling_parameters(alphacums=self.alphas_cumprod.cpu(),
-                                                                                   ddim_timesteps=ddim_timesteps,
-                                                                                   eta=0,
-                                                                                   verbose=False)
-        # 修改后的代码
-        self.ddim_sigmas = ddim_sigmas
-        self.ddim_alphas = ddim_alphas
-        # self.register_buffer('ddim_sigmas', ddim_sigmas)
-        # self.register_buffer('ddim_alphas', ddim_alphas)
-        self.ddim_alphas_prev =  ddim_alphas_prev
-        # self.register_buffer('ddim_alphas_prev', ddim_alphas_prev)
-        self.ddim_sqrt_one_minus_alphas = np.sqrt(1. - ddim_alphas)
-        # self.register_buffer('ddim_sqrt_one_minus_alphas', np.sqrt(1. - ddim_alphas))
-
-
-        iterator = tqdm(time_range, desc='CAT-DM', total=total_steps)
-        img = super().q_sample(z_new[:,:4,:,:], torch.full((z_new.shape[0],), time_range[-1], device=self.device, dtype=torch.long))
-        for i, step in enumerate(iterator):
-            index = total_steps - i - 1
-            ts = torch.full((b,), step, device=device, dtype=torch.long)
-            outs = self.p_sample_ddim(img, inpaint, mask, hint, reference, ts, index)
-
-            img, _ = outs
-
-
-
-        samples = 1. / self.scale_factor * img
+        test_model_kwargs = {}
+        test_model_kwargs['inpaint_image'] = z_new[:,4:8,:,:]
+        test_model_kwargs['inpaint_mask'] = z_new[:,8:,:,:]
+        ddim_sampler = DDIMSampler(self)
+        shape = (self.channels, self.image_size, self.image_size)
+        samples, _ = ddim_sampler.sample(ddim_steps, 
+                                        reference.shape[0], 
+                                        shape, 
+                                        hint, 
+                                        reference,
+                                        verbose=False, 
+                                        eta=ddim_eta,
+                                        test_model_kwargs=test_model_kwargs)
+        samples = 1. / self.scale_factor * samples
         x_samples = self.first_stage_model.decode(samples[:,:4,:,:])
         # log["samples"] = x_samples
 
@@ -421,82 +398,3 @@ class ControlLDM(DDPM):
     
 
 
-
-    def p_sample(self, x, t, reference, hint, inpaint, mask):
-        b, *_, device = *x.shape, x.device
-        model_mean, _, model_log_variance = self.p_mean_variance(x, t, reference, hint, inpaint, mask)
-        noise = noise_like(x.shape, device)
-        # no noise when t == 0
-        nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
-        return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
-    
-    def p_mean_variance(self, x, t, reference, hint, inpaint, mask):
-        reference_clip = self.cond_stage_model.encode(reference)
-        reference_clip = self.proj_out(reference_clip)
-        dino = self.dinov2_vits14(reference,is_training=True)
-        dino1 = dino["x_norm_clstoken"].unsqueeze(1)
-        dino2 = dino["x_norm_patchtokens"]
-        reference_dino = torch.cat((dino1, dino2), dim=1)
-        reference_dino = self.linear(reference_dino)
-        model_out  = self.apply_model(torch.cat([x, inpaint, mask], dim=1), hint, t, reference_clip, reference_dino)
-        x_recon = self.predict_start_from_noise(x, t=t, noise=model_out)
-        x_recon.clamp_(-1., 1.)
-        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(x_start=x_recon, x_t=x, t=t)
-        return model_mean, posterior_variance, posterior_log_variance
-    
-    def q_posterior(self, x_start, x_t, t):
-        posterior_mean = (
-                extract_into_tensor(self.posterior_mean_coef1, t, x_t.shape) * x_start +
-                extract_into_tensor(self.posterior_mean_coef2, t, x_t.shape) * x_t
-        )
-        posterior_variance = extract_into_tensor(self.posterior_variance, t, x_t.shape)
-        posterior_log_variance_clipped = extract_into_tensor(self.posterior_log_variance_clipped, t, x_t.shape)
-        return posterior_mean, posterior_variance, posterior_log_variance_clipped
-    
-    def predict_start_from_noise(self, x_t, t, noise):
-        return (
-                extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t -
-                extract_into_tensor(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * noise
-        )
-
-    def p_sample_ddim(self,
-                      x,
-                      inpaint,
-                      mask,
-                      hint,
-                      reference,
-                      t,
-                      index):
-        b, *_, device = *x.shape, x.device
-
-        x = torch.cat([x, inpaint, mask],dim=1)
-
-        reference_clip = self.cond_stage_model.encode(reference)
-        reference_clip= self.proj_out(reference_clip)
-        dino = self.dinov2_vits14(reference,is_training=True)
-        dino1 = dino["x_norm_clstoken"].unsqueeze(1)
-        dino2 = dino["x_norm_patchtokens"]
-        reference_dino = torch.cat((dino1, dino2), dim=1)
-        reference_dino = self.linear(reference_dino)
-        control = self.control_model(x, hint, t, reference_dino)
-        e_t = self.model(x, t, reference_clip, control)
-
-
-        alphas = self.ddim_alphas
-        alphas_prev = self.ddim_alphas_prev
-        sqrt_one_minus_alphas = self.ddim_sqrt_one_minus_alphas
-        sigmas = self.ddim_sigmas
-        # select parameters corresponding to the currently considered timestep
-        a_t = torch.full((b, 1, 1, 1), alphas[index], device=device)
-        a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device)
-        sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
-        sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index],device=device)
-
-
-        pred_x0 = (x[:,:4,:,:] - sqrt_one_minus_at * e_t) / a_t.sqrt()
-        dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
-        noise = sigma_t * noise_like(dir_xt.shape, device, False)
-        x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
- 
-
-        return x_prev, pred_x0

@@ -1,5 +1,6 @@
+
 model:
-  base_learning_rate: 2e-05
+  base_learning_rate: 3e-05
   target: ldm.models.diffusion.control.ControlLDM
   params:
     linear_start: 0.00085

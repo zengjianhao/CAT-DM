@@ -1,5 +1,5 @@
 model:
-  base_learning_rate: 2e-05
+  base_learning_rate: 3e-05
   target: ldm.models.diffusion.control.ControlLDM
   params:
     linear_start: 0.00085
@@ -71,22 +71,21 @@ model:
       target: ldm.modules.encoders.modules.FrozenCLIPImageEmbedder
 
 data:
-  target: main.DataModuleFromConfig
+  target: train.DataModuleFromConfig
   params:
       batch_size: 2
       wrap: False
       train:
-          target: ldm.data.dresscode-images.OpenImageDataset
+          target: ldm.data.image_dresscode.OpenImageDataset
           params:
               state: train
-              dataset_dir: /home/sd/Harddisk/zjh/DressCode
+              dataset_dir: datasets/dresscode
               
 
 lightning:
   trainer:
-    max_epochs: 90
+    max_epochs: 80
     num_nodes: 1
     profiler: "simple"
     accelerator: 'ddp'
     gpus: "0,1"
-    resume_from_checkpoint: /home/sd/Harddisk/zjh/Teacher/epoch=80.ckpt
