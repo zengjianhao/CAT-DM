@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro">
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/CAT-DM.png">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title. -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title"><span style="color:hsl(204, 86%, 53%)">CAT-DM</span>: <span style="color:hsl(204, 86%, 53%)">C</span>ontrollable <span style="color:hsl(204, 86%, 53%)">A</span>ccelerated Virtual <span style="color:hsl(204, 86%, 53%)">T</span>ry-on with <span style="color:hsl(204, 86%, 53%)">D</span>iffusion <span style="color:hsl(204, 86%, 53%)">M</span>odel</h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                <a href="https://zengjianhao.github.io/">Jianhao Zeng</a><sup>1</sup>, </span>
+              <span class="author-block">
+                <a href="http://seea.tju.edu.cn/info/1014/1460.htm">Dan Song</a><sup>1</sup>, </span>
+              <span class="author-block">
+                <a href="https://seea.tju.edu.cn/info/1014/1451.htm">Weizhi Nie</a><sup>1</sup>, </span>
+              <span class="author-block">
+                <a href="https://seea.tju.edu.cn/info/1014/3931.htm"> Hongshuo Tian</a><sup>1</sup>, </span>
+              <span class="author-block">
+                <a href="https://tongttwang.github.io/">Tongtong Wang</a><sup>2</sup>, </span>
+              <span class="author-block">
+                <a href="https://liuanantju.github.io/">Anan Liu</a><sup>1</sup>, </span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block"><sup>1</sup>Tianjin University,</span>
+              <span class="author-block"><sup>2</sup>Tencent LightSpeed Studio</span>
+            </div>
+
+            <div class="column has-text-centered">
+              <img src="./static/images/CAT-DM.png" class="interpolation-image" alt="logo of CAT-DM" height="150" width="150"/>
+              <div class="publication-links">
+                <!-- PDF Link. -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/pdf/2311.18405" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <!-- Arxiv Link. -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2311.18405" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+                <!-- Code Link. -->
+                <span class="link-block">
+                  <a href="https://github.com/zengjianhao/CAT-DM"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract. -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <!-- Abstract. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Generative Adversarial Networks (GANs) dominate the research field in image-based virtual try-on, but have not resolved problems such as unnatural deformation of garments and the blurry generation quality. While the generative quality of diffusion models is impressive, achieving controllability poses a significant challenge when applying it to virtual try-on tasks and multiple denoising iterations limit its potential for real-time applications. In this paper, we propose Controllable Accelerated virtual Try-on with Diffusion Model called CAT-DM. To enhance the controllability, a basic diffusion-based virtual try-on network is designed, which utilizes ControlNet to introduce additional control conditions and improves the feature extraction of garment images. In terms of acceleration, CAT-DM initiates a reverse denoising process with an implicit distribution generated by a pre-trained GAN-based model. Compared with previous try-on methods based on diffusion models, CAT-DM not only retains the pattern and texture details of the in-shop garment but also reduces the sampling steps without compromising generation quality. Extensive experiments demonstrate the superiority of CAT-DM against both GAN-based and diffusion-based methods in producing more realistic images and accurately reproducing garment patterns.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Reference. -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>
+        @article{zeng2023cat,
+          title={CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model},
+          author={Zeng, Jianhao and Song, Dan and Nie, Weizhi and Tian, Hongshuo and Wang, Tongtong and Liu, Anan},
+          journal={arXiv preprint arXiv:2311.18405},
+          year={2023}
+        }
+      </code></pre>
+    </div>
+  </section>
+
+
+
+</body>
+
+</html>
