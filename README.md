@@ -18,6 +18,7 @@
 </div>
 
 Paper: [https://arxiv.org/abs/2311.18405](https://arxiv.org/abs/2311.18405)
+Progect: [https://zengjianhao.github.io/CAT-DM](https://zengjianhao.github.io/CAT-DM)
 
 <img src="./assets/CAT-DM.png" style="width:30%;">
 
@@ -193,13 +194,15 @@ bash scripts/train_dresscode.sh
 
 ### VITON-HD
 
-1. Download the pretrain model and directly generate the try-on results:
+1. Download the [checkpoint](https://huggingface.co/JianhaoZeng/CAT-DM/tree/main) for VITON-HD dataset and put it into `checkpoints` folder.
+
+2. Directly generate the try-on results:
 
 ```bash
 bash scripts/test_vitonhd.sh
 ```
 
-2. Poisson Blending
+3. Poisson Blending
 
 ```python
 python tools/poisson_vitonhd.py
@@ -207,13 +210,15 @@ python tools/poisson_vitonhd.py
 
 ### DressCode
 
-1. Download the pretrain model and directly generate the try-on results:
+1. Download the [checkpoint](https://huggingface.co/JianhaoZeng/CAT-DM/tree/main) for DressCode dataset and put it into `checkpoints` folder.
+
+2. Directly generate the try-on results:
 
 ```bash
 bash scripts/test_dresscode.sh
 ```
 
-2. Poisson Blending
+3. Poisson Blending
 
 ```python
 python tools/poisson_dresscode.py
