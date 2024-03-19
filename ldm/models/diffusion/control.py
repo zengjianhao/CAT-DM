@@ -239,12 +239,11 @@ class ControlLDM(DDPM):
         self.scale_factor = scale_factor                                        # 0.18215
         self.learnable_vector = nn.Parameter(torch.randn((1,1,768)), requires_grad=False)
         self.trainable_vector = nn.Parameter(torch.randn((1,1,768)), requires_grad=True)
-        self.dinov2_vits14 = torch.hub.load('/home/sd/.cache/torch/hub/facebookresearch_dinov2_main', 'dinov2_vitl14', source='local', pretrained=False)
-        state_dict = torch.load('/home/sd/Harddisk/zjh/Teacher/checkpoints/dinov2_vitl14_pretrain.pth')
-        self.dinov2_vits14.load_state_dict(state_dict)
-        self.dinov2_vits14.eval()
-        self.dinov2_vits14.train = disabled_train
-        for param in self.dinov2_vits14.parameters():
+
+        self.dinov2_vitl14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14')
+        self.dinov2_vitl14.eval()
+        self.dinov2_vitl14.train = disabled_train
+        for param in self.dinov2_vitl14.parameters():
             param.requires_grad = False 
         self.linear = nn.Linear(1024, 768)
 
@@ -317,7 +316,7 @@ class ControlLDM(DDPM):
         reference_clip = self.proj_out(reference_clip)
 
         # DINO 处理 reference
-        dino = self.dinov2_vits14(reference,is_training=True)
+        dino = self.dinov2_vitl14(reference,is_training=True)
         dino1 = dino["x_norm_clstoken"].unsqueeze(1)
         dino2 = dino["x_norm_patchtokens"]
         reference_dino = torch.cat((dino1, dino2), dim=1)

@@ -76,10 +76,11 @@ data:
       batch_size: 1
       wrap: False
       test:
-          target: ldm.data.viton-images.OpenImageDataset
+          target: ldm.data.image_vitonhd.OpenImageDataset
           params:
               state: test
-              dataset_dir: /home/sd/Harddisk/zjh/Dataset
+              dataset_dir: datasets/vitonhd
+              type: unpaired
 
 lightning:
   trainer:

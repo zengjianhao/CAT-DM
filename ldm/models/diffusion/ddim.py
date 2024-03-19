@@ -175,7 +175,7 @@ class DDIMSampler(object):
         if unconditional_conditioning is None or unconditional_guidance_scale == 1.:
             reference_clip = self.model.cond_stage_model.encode(c)
             reference_clip= self.model.proj_out(reference_clip)
-            dino = self.model.dinov2_vits14(c,is_training=True)
+            dino = self.model.dinov2_vitl14(c,is_training=True)
             dino1 = dino["x_norm_clstoken"].unsqueeze(1)
             dino2 = dino["x_norm_patchtokens"]
             reference_dino = torch.cat((dino1, dino2), dim=1)

@@ -76,10 +76,11 @@ data:
       batch_size: 1
       wrap: False
       test:
-          target: ldm.data.dresscode-images.OpenImageDataset
+          target: ldm.data.image_dresscode.OpenImageDataset
           params:
               state: test
-              dataset_dir: /home/sd/Harddisk/zjh/DressCode
+              dataset_dir: datasets/dresscode
+              type: unpaired
 
 lightning:
   trainer:

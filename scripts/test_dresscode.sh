@@ -1,4 +1,4 @@
 python -u test.py \
---base configs/test-dresscode.yaml \
---ckpt /home/sd/Harddisk/zjh/Teacher/epoch=80.ckpt \
+--base configs/test_dresscode.yaml \
+--ckpt checkpoints/dresscode.ckpt \
 --ddim 16
