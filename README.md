@@ -238,10 +238,11 @@ python tools/poisson_dresscode.py
 ## Citing
 
 ```
-@article{zeng2023cat,
+@inproceedings{zeng2024cat,
   title={CAT-DM: Controllable Accelerated Virtual Try-on with Diffusion Model},
-  author={Zeng, Jianhao and Song, Dan and Nie, Weizhi and Tian, Hongshuo and Wang, Tongtong and Liu, Anan},
-  journal={arXiv preprint arXiv:2311.18405},
-  year={2023}
+  author={Zeng, Jianhao and Song, Dan and Nie, Weizhi and Tian, Hongshuo and Wang, Tongtong and Liu, An-An},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={8372--8382},
+  year={2024}
 }
 ```
